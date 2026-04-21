@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: candidate-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: candidate-service
+  template:
+    metadata:
+      labels:
+        app: candidate-service
+    spec:
+      containers:
+        - name: candidate
+          image: candidate-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000

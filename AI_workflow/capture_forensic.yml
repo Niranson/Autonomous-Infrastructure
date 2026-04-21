@@ -1,0 +1,16 @@
+- name: Forensic Data Capture
+  hosts: localhost
+  tasks:
+    - name: Create Log Directory
+      file:
+        path: ./logs
+        state: directory
+
+    - name: Capture Failing Pod Logs
+      shell: kubectl logs --tail=100 -l app=api-gateway > ./logs/forensic_log_{{ ansible_date_time.epoch }}.txt
+
+    - name: Capture Cluster Events
+      shell: kubectl get events --sort-by='.lastTimestamp' > ./logs/event_report_{{ ansible_date_time.epoch }}.txt
+
+    - name: Heal the Service
+      shell: kubectl rollout restart deployment api-gateway

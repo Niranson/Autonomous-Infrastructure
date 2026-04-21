@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Digital Vote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        header p {
+            margin-top: 5px;
+            opacity: 0.85;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #1e293b;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🗳️ Digital Voting System</h1>
+    <p>Secure • Distributed • Microservices-based</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>1️⃣ Select Voter</h2>
+        <label for="voterSelect">Voter</label>
+        <select id="voterSelect"></select>
+    </div>
+
+    <div class="card">
+        <h2>2️⃣ Select Candidate</h2>
+        <label for="candidateSelect">Candidate</label>
+        <select id="candidateSelect"></select>
+    </div>
+
+    <div class="card">
+        <h2>3️⃣ Cast Vote</h2>
+        <button onclick="castVote()">Submit Vote</button>
+        <div id="voteStatus" class="status"></div>
+    </div>
+
+    <div class="card">
+        <h2>4️⃣ Election Results</h2>
+        <button onclick="loadResults()">View Results</button>
+        <pre id="results"></pre>
+    </div>
+
+</div>
+
+<footer>
+    DigitalVote © 2026 | Microservices & DevOps Project
+</footer>
+
+<script>
+/* 🔥 IMPORTANT: All calls go through API Gateway */
+
+const voterURL = "http://localhost:30007/voter/voters";
+const candidateURL = "http://localhost:30007/candidate/candidates";
+const voteURL = "http://localhost:30007/vote/vote";
+const resultURL = "http://localhost:30007/result/results";
+
+// Load voters
+fetch(voterURL)
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById("voterSelect");
+        select.innerHTML = "";
+        data.forEach(v => {
+            const option = document.createElement("option");
+            option.value = v.id;
+            option.text = `${v.name} (voted: ${v.has_voted})`;
+            select.appendChild(option);
+        });
+    })
+    .catch(err => console.error("Error loading voters:", err));
+
+// Load candidates
+fetch(candidateURL)
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById("candidateSelect");
+        select.innerHTML = "";
+        data.forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.id;
+            option.text = `${c.name} - ${c.party}`;
+            select.appendChild(option);
+        });
+    })
+    .catch(err => console.error("Error loading candidates:", err));
+
+// Cast vote
+function castVote() {
+    const voterId = document.getElementById("voterSelect").value;
+    const candidateId = document.getElementById("candidateSelect").value;
+    const status = document.getElementById("voteStatus");
+
+    status.innerText = "Submitting vote...";
+    status.className = "status";
+
+    fetch(voteURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            voter_id: parseInt(voterId),
+            candidate_id: parseInt(candidateId)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            status.innerText = data.error;
+            status.classList.add("error");
+        } else {
+            status.innerText = data.message;
+            status.classList.add("success");
+        }
+    })
+    .catch(err => {
+        status.innerText = "Error submitting vote";
+        status.classList.add("error");
+    });
+}
+
+// Load results
+function loadResults() {
+    fetch(resultURL)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("results").innerText =
+                JSON.stringify(data, null, 2);
+        })
+        .catch(err => {
+            document.getElementById("results").innerText = "Error loading results";
+        });
+}
+</script>
+
+</body>
+</html>

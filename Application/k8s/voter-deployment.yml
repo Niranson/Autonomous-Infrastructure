@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voter-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voter-service
+  template:
+    metadata:
+      labels:
+        app: voter-service
+    spec:
+      containers:
+        - name: voter
+          image: voter-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000

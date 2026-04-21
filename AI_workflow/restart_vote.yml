@@ -1,0 +1,11 @@
+- name: Auto-Heal K8s Vote Service
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Triggering Kubernetes Rollout Restart for Vote Service
+      command: kubectl rollout restart deployment/vote-service
+      register: rollout_result
+
+    - name: Verify Restart
+      debug:
+        msg: "Self-Healing Complete: {{ rollout_result.stdout }}"

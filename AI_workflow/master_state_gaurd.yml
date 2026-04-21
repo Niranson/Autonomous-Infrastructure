@@ -1,0 +1,20 @@
+- name: Infrastructure Integrity Guard
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: "Detecting Configuration Drift"
+      shell: kubectl get deployments api-gateway
+      register: check_deploy
+      ignore_errors: yes
+
+    - name: "Re-Applying Master Configuration"
+      shell: kubectl apply -f ./k8s/  # Change this to your k8s folder path
+      when: check_deploy.failed or "'api-gateway' not in check_deploy.stdout"
+
+    - name: "Purging Unauthorized Changes"
+      shell: kubectl rollout restart deployment api-gateway
+      when: check_deploy.rc == 0
+
+    - name: "Integrity Report"
+      debug:
+        msg: "System has been synchronized with the Master Configuration."
